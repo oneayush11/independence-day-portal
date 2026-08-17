@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #fffdf8;
+  color: #1a1a1a;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: "Poppins", sans-serif;
+}
+
+/* ---------- Attractive tricolor button with hover effect ---------- */
+.btn-tricolor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  font-weight: 600;
+  color: white;
+  border-radius: 9999px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(120deg, #FF9933 0%, #ffffff 50%, #138808 100%);
+  background-size: 220% 220%;
+  background-position: 0% 50%;
+  box-shadow: 0 4px 14px rgba(11, 37, 69, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background-position 0.6s ease;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+}
+.btn-tricolor::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 9999px;
+  background: #0B2545;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+.btn-tricolor span {
+  position: relative;
+  z-index: 1;
+}
+.btn-tricolor:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 10px 25px rgba(255, 153, 51, 0.45);
+  background-position: 100% 50%;
+}
+.btn-tricolor:hover::before {
+  opacity: 0.15;
+}
+.btn-tricolor:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+/* Secondary outline button */
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.6rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 2px solid #FF9933;
+  color: #0B2545;
+  background: transparent;
+  transition: all 0.25s ease;
+}
+.btn-outline:hover {
+  background: #FF9933;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(255, 153, 51, 0.35);
+}
+
+/* View button (info style) */
+.btn-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 9999px;
+  color: #0B2545;
+  background: #eef2f7;
+  border: 1px solid #d8e0ea;
+  transition: all 0.2s ease;
+}
+.btn-view:hover {
+  background: #0B2545;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(11, 37, 69, 0.3);
+}
+
+/* Edit button */
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 9999px;
+  color: white;
+  background: #138808;
+  transition: all 0.2s ease;
+}
+.btn-edit:hover {
+  background: #0f6b06;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(19, 136, 8, 0.35);
+}
+
+/* Admin/danger button */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 9999px;
+  color: white;
+  background: #c53030;
+  transition: all 0.2s ease;
+}
+.btn-danger:hover {
+  background: #9b2c2c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(197, 48, 48, 0.4);
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 35px rgba(11, 37, 69, 0.15);
+}
+
+/* Nav link underline sweep */
+.nav-link {
+  position: relative;
+  padding-bottom: 2px;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, #FF9933, #138808);
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* Homepage image carousel transition now uses inline Tailwind utility
+   classes directly on the <img> elements (see ImageCarousel.jsx) */
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#FF9933, #138808);
+  border-radius: 10px;
+}
