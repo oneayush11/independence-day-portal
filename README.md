@@ -178,7 +178,4 @@ Password: admin123
 | AI quiz always uses local fallback | Double check `ANTHROPIC_API_KEY` is set correctly and restart the backend |
 
 ## Author
-
-Built as a personal/portfolio project. If you use this or build on top of it, a star or a shoutout is appreciated 🙂
-
 Jai Hind 🇮🇳
