@@ -45,7 +45,11 @@ export default function Gallery() {
           {items.map((item) => (
             <div key={item._id} className="card-hover break-inside-avoid rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-white">
               <img
-                src={`${api.defaults.baseURL.replace(/\/api\/?$/, "")}${item.imageUrl}`}
+                src={
+                  item.imageUrl.startsWith("http")
+                    ? item.imageUrl
+                    : `${import.meta.env.VITE_API_URL}${item.imageUrl}`
+                }
                 alt={item.title || "Event photo"}
                 className="w-full object-cover"
               />
