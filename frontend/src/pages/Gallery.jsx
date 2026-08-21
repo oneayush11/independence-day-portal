@@ -46,7 +46,7 @@ export default function Gallery() {
             <div key={item._id} className="card-hover break-inside-avoid rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-white">
               <img
                 src={
-                  item.imageUrl.startsWith("http")
+                  item.imageUrl.startsWith("http") || item.imageUrl.startsWith("data:")
                     ? item.imageUrl
                     : `${import.meta.env.VITE_API_URL}${item.imageUrl}`
                 }
