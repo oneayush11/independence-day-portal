@@ -44,7 +44,11 @@ export default function Gallery() {
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
           {items.map((item) => (
             <div key={item._id} className="card-hover break-inside-avoid rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-white">
-              <img src={item.imageUrl} alt={item.title || "Event photo"} className="w-full object-cover" />
+              <img
+                src={`${api.defaults.baseURL.replace(/\/api\/?$/, "")}${item.imageUrl}`}
+                alt={item.title || "Event photo"}
+                className="w-full object-cover"
+              />
               {(item.title || item.caption) && (
                 <div className="p-3">
                   {item.title && <p className="font-semibold text-navy text-sm">{item.title}</p>}
