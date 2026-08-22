@@ -63,7 +63,8 @@ export default function Quiz() {
   };
 
   const downloadCertificate = () => {
-    window.open(`/api/quiz/certificate/${result.resultId}`, "_blank");
+    const baseURL = import.meta.env.VITE_API_URL || "";
+    window.open(`${baseURL}/api/quiz/certificate/${result.resultId}`, "_blank");
   };
 
   const backToList = () => {
