@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema(
       default: "participant",
     },
     phone: { type: String, default: "" },
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
