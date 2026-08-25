@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import Gallery from "./pages/Gallery";
 import Announcements from "./pages/Announcements";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
             path="/admin"
             element={
