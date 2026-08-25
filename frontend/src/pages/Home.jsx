@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ImageCarousel from "../components/ImageCarousel";
 import api from "../api/axios";
+import PortalGuideWidget from "../components/PortalGuideWidget";
 
 export default function Home() {
   const [announcement, setAnnouncement] = useState(null);
@@ -108,6 +109,8 @@ export default function Home() {
           <span>Register for the Event 🇮🇳</span>
         </Link>
       </section>
+
+      <PortalGuideWidget />
     </div>
   );
 }
