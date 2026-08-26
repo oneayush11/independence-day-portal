@@ -17,7 +17,6 @@ const registerUser = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: "Name, email, password required" });
     }
-
     const emailCheck = validateTrustedEmail(email);
     if (!emailCheck.valid) {
       return res.status(400).json({ success: false, message: emailCheck.message });
