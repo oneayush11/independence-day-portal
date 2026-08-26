@@ -26,6 +26,9 @@ const sendEmail = async ({ to, subject, html, text }) => {
     port,
     secure: port === 465, // true for port 465 (SSL), false for 587/others (STARTTLS)
     auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 
   await transporter.sendMail({
