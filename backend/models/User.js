@@ -25,6 +25,9 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     resetPasswordToken: { type: String, select: false },
     resetPasswordExpires: { type: Date, select: false },
+    resetPasswordOTP: { type: String, select: false },
+    resetPasswordOTPExpires: { type: Date, select: false },
+    resetPasswordVerified: { type: Boolean, default: false, select: false },
   },
   { timestamps: true }
 );
