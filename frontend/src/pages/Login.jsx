@@ -166,10 +166,7 @@ export default function Login() {
         </form>
       ) : (
         <form onSubmit={handleForgotSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-4">
-          <p className="text-xs text-gray-400">
-            This only works for regular participant accounts created via Sign Up — not for the
-            admin account.
-          </p>
+         
           <div>
             <label className="text-sm font-medium text-navy">Email</label>
             <input
@@ -192,10 +189,7 @@ export default function Login() {
                   <a href={devResetUrl} className="text-saffron font-semibold hover:underline break-all">
                     {devResetUrl}
                   </a>
-                  <p className="text-xs text-gray-400 mt-1">
-                    (Shown here because no email service is configured yet — in production this
-                    link would be emailed to you instead.)
-                  </p>
+              
                 </>
               )}
             </div>
