@@ -77,11 +77,13 @@ const getMe = async (req, res) => {
   res.json({ success: true, data: req.user });
 };
 
+const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000)); // 6 digits
+const hashOtp = (otp) => crypto.createHash("sha256").update(otp).digest("hex");
+
 // @route POST /api/auth/forgot-password
-// Only works for participant (self-registered) accounts — admin accounts
-// are intentionally excluded from self-service password reset, as a
-// deliberate security decision (admin password changes should happen
-// through a trusted/manual channel, not a public form).
+// Step 1 of the reset flow: generate a 6-digit OTP and email it. Only works
+// for participant (self-registered) accounts — admin accounts are
+// intentionally excluded from self-service password reset.
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -94,77 +96,97 @@ const forgotPassword = async (req, res) => {
     // Always send back the same generic message whether or not the account
     // exists, and whether it's a participant or admin — this avoids leaking
     // which emails are registered, or that an email belongs to the admin.
-    const genericMessage =
-      "Click the link below to reset your password.";
+    const genericMessage = "If a participant account with that email exists, we've sent a one-time code to it.";
 
     if (!user || user.role !== "participant") {
       return res.json({ success: true, message: genericMessage });
     }
 
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-
-    user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = Date.now() + 30 * 60 * 1000; // valid for 30 minutes
+    const otp = generateOtp();
+    user.resetPasswordOTP = hashOtp(otp);
+    user.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000; // valid for 10 minutes
+    user.resetPasswordVerified = false;
     await user.save();
-
-    const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password/${rawToken}`;
 
     try {
       await sendEmail({
         to: user.email,
-        subject: "Reset your Independence Day Portal password",
-        text: `Hi ${user.name},\n\nWe received a request to reset your password. Click the link below (valid for 30 minutes):\n\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`,
-        html: `
-          <p>Hi ${user.name},</p>
-          <p>We received a request to reset your password. Click the button below (valid for 30 minutes):</p>
-          <p><a href="${resetUrl}" style="background:#FF9933;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;">Reset Password</a></p>
-          <p>Or copy this link: <br/>${resetUrl}</p>
-          <p style="color:#888;font-size:13px;">If you didn't request this, you can safely ignore this email.</p>
-        `,
+        subject: "Your Independence Day Portal password reset code",
+        text: `Your one-time code is ${otp}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`,
+        html: `<p>Hi ${user.name},</p><p>Your one-time code to reset your Independence Day Portal password is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px;">${otp}</p><p>This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>`,
       });
-      console.log("📧 Password reset email sent to:", user.email);
+      console.log("📧 Password reset OTP email sent to:", user.email);
       return res.json({ success: true, message: genericMessage });
-    } catch (emailError) {
+    } catch (emailErr) {
       // Email isn't configured yet (or sending failed) — fall back to
-      // logging + returning the link directly so the flow stays testable
+      // logging + returning the OTP directly so the flow stays testable
       // locally. See backend/utils/sendEmail.js and .env.example.
-      console.warn("⚠️  Could not send reset email:", emailError.message);
-      console.log("🔑 Password reset link (would normally be emailed):", resetUrl);
-      return res.json({ success: true, message: genericMessage, resetUrl });
+      console.warn("⚠️  Could not send OTP email:", emailErr.message);
+      console.log("🔑 Password reset OTP (would normally be emailed):", otp);
+      return res.json({ success: true, message: genericMessage, devOtp: otp });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @route POST /api/auth/reset-password/:token
+// @route POST /api/auth/verify-otp
+// Step 2: check the code the user typed against the hashed OTP on file.
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: "Email and code are required" });
+    }
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      role: "participant",
+      resetPasswordOTP: hashOtp(otp),
+      resetPasswordOTPExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "That code is incorrect or has expired." });
+    }
+
+    user.resetPasswordVerified = true;
+    await user.save();
+
+    res.json({ success: true, message: "Code verified. You can now set a new password." });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route POST /api/auth/reset-password
+// Step 3: only allowed once the OTP for this email has been verified
+// (and hasn't expired since) — never touches admin accounts.
 const resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
-
+    const { email, password } = req.body;
     if (!password || password.length < 6) {
       return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
     }
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
-    // role: "participant" here is a second safety net — even if a token
-    // somehow existed on an admin account, this query would never match it.
     const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
+      email: (email || "").toLowerCase(),
       role: "participant",
+      resetPasswordVerified: true,
+      resetPasswordOTPExpires: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "This reset link is invalid or has expired." });
+      return res.status(400).json({
+        success: false,
+        message: "Your verification has expired. Please restart the password reset process.",
+      });
     }
 
     user.password = password; // the pre("save") hook on User hashes this
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpires = undefined;
+    user.resetPasswordVerified = false;
     await user.save();
 
     res.json({ success: true, message: "Password reset successful. You can now log in with your new password." });
@@ -173,4 +195,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, forgotPassword, resetPassword };
+module.exports = { registerUser, loginUser, getMe, forgotPassword, verifyOtp, resetPassword };
