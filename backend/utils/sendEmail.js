@@ -10,13 +10,15 @@ const nodemailer = require("nodemailer");
  * are expected to catch this and decide what to do (e.g. fall back to
  * logging the content instead, as authController.js does for password resets).
  */
-const sendEmail = async ({ to, subject, html, text }) => {
+const sendEmail = async ({ to, subject, text, html }) => {
   const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_FROM } = process.env;
 
   if (!EMAIL_HOST || !EMAIL_USER || !EMAIL_PASS) {
-    throw new Error(
-      "Email service is not configured — set EMAIL_HOST, EMAIL_USER and EMAIL_PASS in backend/.env"
+    const err = new Error(
+      "Email sending isn't configured yet — set EMAIL_HOST/EMAIL_PORT/EMAIL_USER/EMAIL_PASS in backend/.env"
     );
+    err.code = "EMAIL_NOT_CONFIGURED";
+    throw err;
   }
 
   const port = Number(EMAIL_PORT) || 587;
