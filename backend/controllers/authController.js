@@ -95,7 +95,7 @@ const forgotPassword = async (req, res) => {
     // exists, and whether it's a participant or admin — this avoids leaking
     // which emails are registered, or that an email belongs to the admin.
     const genericMessage =
-      "If a participant account with that email exists, we've sent password reset instructions to it.";
+      "Click the link below to <strong>reset your password.</strong>";
 
     if (!user || user.role !== "participant") {
       return res.json({ success: true, message: genericMessage });
