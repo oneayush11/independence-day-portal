@@ -9,6 +9,9 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   // --- Forgot password (OTP flow) state ---
   // step: "email" -> "otp" -> "newPassword" -> "done"
   const [resetStep, setResetStep] = useState("email");
@@ -17,10 +20,6 @@ export default function Login() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
-  const [devOtp, setDevOtp] = useState("");
-
-  const { login } = useAuth();
-  const navigate = useNavigate();
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -54,7 +53,6 @@ export default function Login() {
       setNewPassword("");
       setConfirmPassword("");
       setInfoMessage("");
-      setDevOtp("");
     }
   };
 
@@ -63,12 +61,10 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setInfoMessage("");
-    setDevOtp("");
     setLoading(true);
     try {
       const res = await api.post("/auth/forgot-password", { email: resetEmail });
       setInfoMessage(res.data.message);
-      if (res.data.devOtp) setDevOtp(res.data.devOtp);
       setResetStep("otp");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
@@ -277,18 +273,6 @@ export default function Login() {
               {infoMessage && (
                 <div className="bg-indiagreen/10 border border-indiagreen/30 rounded-lg p-3 text-sm text-navy">
                   {infoMessage}
-
-                  {devOtp && (
-                    <>
-                      <p className="mt-2 font-display font-bold text-xl tracking-[0.3em] text-saffron text-center">
-                        {devOtp}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        (Shown here because no email service is configured yet — in production
-                        this code would be emailed to you instead.)
-                      </p>
-                    </>
-                  )}
                 </div>
               )}
 
