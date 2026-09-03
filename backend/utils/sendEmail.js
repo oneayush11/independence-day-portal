@@ -1,45 +1,57 @@
-const nodemailer = require("nodemailer");
-
 /**
- * Sends an email via SMTP using credentials from backend/.env.
+ * Sends transactional email via Brevo's HTTP API (https://www.brevo.com).
  *
- * Required .env variables: EMAIL_HOST, EMAIL_USER, EMAIL_PASS
- * Optional: EMAIL_PORT (defaults to 587), EMAIL_FROM (defaults to EMAIL_USER)
+ * We deliberately use an HTTPS API instead of raw SMTP (nodemailer) here:
+ * free hosting platforms like Render often block or heavily throttle
+ * outbound SMTP ports (25/465/587), which made emails silently hang
+ * or fail there. A plain HTTPS POST request is not affected by that, so
+ * this is the reliable option for a hosted deployment.
  *
- * Throws if the required config is missing or if sending fails — callers
- * are expected to catch this and decide what to do (e.g. fall back to
- * logging the content instead, as authController.js does for password resets).
+ * Setup (free): create a Brevo account -> Settings -> SMTP & API -> API
+ * Keys -> generate one, then verify a sender email under Senders &
+ * Domains. Put both in backend/.env (see .env.example).
  */
-const sendEmail = async ({ to, subject, text, html }) => {
-  const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_FROM } = process.env;
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
-  if (!EMAIL_HOST || !EMAIL_USER || !EMAIL_PASS) {
+const sendEmail = async ({ to, subject, text, html }) => {
+  const { BREVO_API_KEY, EMAIL_FROM, EMAIL_FROM_NAME } = process.env;
+
+  if (!BREVO_API_KEY || !EMAIL_FROM) {
     const err = new Error(
-      "Email sending isn't configured yet — set EMAIL_HOST/EMAIL_PORT/EMAIL_USER/EMAIL_PASS in backend/.env"
+      "Email sending isn't configured yet — set BREVO_API_KEY and EMAIL_FROM in backend/.env"
     );
     err.code = "EMAIL_NOT_CONFIGURED";
     throw err;
   }
 
-  const port = Number(EMAIL_PORT) || 587;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // fail fast, never hang
 
-  const transporter = nodemailer.createTransport({
-    host: EMAIL_HOST,
-    port,
-    secure: port === 465, // true for port 465 (SSL), false for 587/others (STARTTLS)
-    auth: { user: EMAIL_USER, pass: EMAIL_PASS },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-  });
+  try {
+    const response = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { name: EMAIL_FROM_NAME || "Independence Day Portal", email: EMAIL_FROM },
+        to: [{ email: to }],
+        subject,
+        textContent: text,
+        htmlContent: html,
+      }),
+      signal: controller.signal,
+    });
 
-  await transporter.sendMail({
-    from: EMAIL_FROM || EMAIL_USER,
-    to,
-    subject,
-    text,
-    html,
-  });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Email provider error (${response.status}): ${errorBody}`);
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 module.exports = sendEmail;
