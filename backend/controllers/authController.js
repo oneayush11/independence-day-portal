@@ -17,6 +17,7 @@ const registerUser = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: "Name, email, password required" });
     }
+
     const emailCheck = validateTrustedEmail(email);
     if (!emailCheck.valid) {
       return res.status(400).json({ success: false, message: emailCheck.message });
@@ -87,8 +88,8 @@ const hashOtp = (otp) => crypto.createHash("sha256").update(otp).digest("hex");
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email || !validator.isEmail(email)) {
-      return res.status(400).json({ success: false, message: "Please enter a valid email address" });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -115,16 +116,19 @@ const forgotPassword = async (req, res) => {
         text: `Your one-time code is ${otp}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`,
         html: `<p>Hi ${user.name},</p><p>Your one-time code to reset your Independence Day Portal password is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px;">${otp}</p><p>This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>`,
       });
-      console.log("📧 Password reset OTP email sent to:", user.email);
-      return res.json({ success: true, message: genericMessage });
     } catch (emailErr) {
-      // Email isn't configured yet (or sending failed) — fall back to
-      // logging + returning the OTP directly so the flow stays testable
-      // locally. See backend/utils/sendEmail.js and .env.example.
-      console.warn("⚠️  Could not send OTP email:", emailErr.message);
-      console.log("🔑 Password reset OTP (would normally be emailed):", otp);
-      return res.json({ success: true, message: genericMessage, devOtp: otp });
+      // IMPORTANT: the OTP is NEVER sent back to the client in the API
+      // response — doing that would let anyone reset anyone else's
+      // password just by knowing their email, without ever touching their
+      // inbox. If email delivery fails (e.g. provider misconfigured), we
+      // log it here — visible only in the server's own logs, which only
+      // the site owner can see — so it can be diagnosed and fixed, while
+      // the response to the client stays identical either way.
+      console.error("Failed to send OTP email:", emailErr.message);
+      console.error(`(For debugging only — never expose this) OTP for ${user.email}: ${otp}`);
     }
+
+    return res.json({ success: true, message: genericMessage });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
