@@ -93,7 +93,7 @@ export default function Quiz() {
             Logging in lets us show you exactly which quizzes you still need to take, and keeps
             quizzes you've already completed out of your way.
           </p>
-          <Link to="/login" className="btn-tricolor">
+          <Link to="/login" state={{ from: "/quiz" }} className="btn-tricolor">
             <span>Log In / Sign Up</span>
           </Link>
         </div>
