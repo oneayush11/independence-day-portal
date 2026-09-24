@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,6 +11,9 @@ export default function Login() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Login ke baad kahan jana hai (e.g. Quiz page se aaye to wapas /quiz), warna Home
+  const redirectTo = location.state?.from || "/";
 
   // --- Forgot password (OTP flow) state ---
   // step: "email" -> "otp" -> "newPassword" -> "done"
@@ -35,7 +38,7 @@ export default function Login() {
           : { name: form.name, email: form.email, password: form.password, phone: form.phone };
       const res = await api.post(endpoint, payload);
       login(res.data.data);
-      navigate("/");
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
