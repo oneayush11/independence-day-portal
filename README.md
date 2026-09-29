@@ -1,8 +1,8 @@
 # 🇮🇳 Independence Day Celebration & Digital Event Portal
 
-A full-stack MERN web app I built to manage a 15th August Independence Day event for a school/college/company — event schedule, chief guest info, online registration, an AI-powered quiz competition, photo gallery, announcements, password reset, and a complete admin dashboard to manage everything from one place.
+A full-stack MERN web app to manage a 15th August Independence Day event for a school, college, or company. It has an event schedule, chief guest details, online registration, an AI-powered quiz, a photo gallery, announcements, password reset, and an admin dashboard to manage everything in one place.
 
-I built this mainly as a portfolio project to practice the full MERN stack along with integrating AI into a real feature (the quiz generator), instead of just another CRUD app.
+I built this as a portfolio project to practice the full MERN stack and to add AI to a real feature (the quiz generator), not just another CRUD app.
 
 ## Live Demo
 
@@ -12,66 +12,83 @@ The frontend and backend are deployed on Render and connected to MongoDB Atlas.
 
 ## Tech Stack
 
-**Frontend:** React (Vite), Tailwind CSS, React Router, Axios  
-**Backend:** Node.js, Express.js  
-**Database:** MongoDB (Mongoose)  
-**Auth:** JWT, bcryptjs  
-**Other:** PDFKit (for certificate generation), Anthropic (Claude) API for the AI quiz generator, Nodemailer for password reset emails
+| Part | Tools |
+|---|---|
+| Frontend | React (Vite), Tailwind CSS, React Router, Axios |
+| Backend | Node.js, Express.js |
+| Database | MongoDB (Mongoose) |
+| Login & security | JWT, bcryptjs |
+| Certificates | PDFKit |
+| AI quiz | Anthropic (Claude) API |
+| Emails | Brevo email API |
+| Image upload | Multer |
 
 ## Features
 
-- Independence Day themed homepage with a tricolor design and an auto-changing image slideshow
-- Event schedule / program timeline
-- Chief Guest & Speaker details section
-- AI-based Quiz Generator — admin enters a topic and the AI generates MCQs automatically. If there's no API key configured, it falls back to a local question bank so the demo still works without needing a paid key
-- Online registration form for participants
+**For visitors and participants**
+
+- Homepage with a tricolor design and an image slideshow that changes every 2 seconds
+- Event schedule (program timeline)
+- Chief Guest and speaker details
+- Online registration form
+- Quiz competition, with an instant PDF certificate at the end
 - Photo gallery
-- Announcements section
-- Admin dashboard with stats and top scorers
-- Full CRUD (Create, View, Update, Delete) for every admin section - registrations, schedule, quizzes, results, gallery, announcements, speakers
-- Auto-generated PDF certificate for quiz participants
-- JWT-based login for admin/participants
-- Forgot Password and Reset Password flow for participant accounts
-- Password reset links expire after 30 minutes
-- Password reset emails are sent through the configured email service
-- Admin accounts are excluded from the public password reset flow
-- Email validation during participant registration
+- Announcements
+- Login for participants
+- Forgot Password with a one-time code (OTP) sent by email
+- Help widget on the site that explains each page and links to WhatsApp
+
+**For admins**
+
+- Dashboard with stats and top scorers
+- Full CRUD (Create, View, Update, Delete) for registrations, schedule, quizzes, results, gallery, announcements, and speakers
+- AI Quiz Generator: enter a topic and the AI creates the questions
+- Download any participant's certificate from the Results tab
+
+**Safety and checks**
+
+- Only major email providers are allowed at signup (Gmail, Yahoo, Outlook, iCloud, and similar)
+- Gallery images must be JPG, PNG, GIF, or WEBP, and up to 50 KB
+- Admin accounts cannot use the public password reset
 
 ## Folder Structure
 
 ```text
 independence-day-portal/
----- backend/
-│   ├── config/          # DB connection
+├── backend/
+│   ├── config/          # Database connection
 │   ├── models/          # Mongoose schemas
-│   ├── controllers/     # route logic
+│   ├── controllers/     # Route logic
 │   ├── routes/          # API endpoints
-│   ├── middleware/      # JWT auth, error handling
-│   ├── utils/           # AI quiz generator, certificate generator, email utilities
+│   ├── middleware/      # Login check, image upload, error handling
+│   ├── utils/           # AI quiz, certificate, email, seed script
 │   └── server.js
-└── frontend/
-    ├── public/images/   # homepage slideshow images
-    └── src/
-        ├── components/  # Header, Footer, ImageCarousel, Modal, etc.
-        ├── pages/       # Home, Schedule, Quiz, Register, Gallery, Admin...
-        ├── context/     # Auth context
-        └── api/         # axios instance
+├── frontend/
+│   ├── public/images/   # Homepage slideshow images
+│   └── src/
+│       ├── components/  # Header, Footer, ImageCarousel, Modal, etc.
+│       ├── pages/       # Home, Schedule, Quiz, Register, Gallery, Admin...
+│       ├── context/     # Auth context
+│       └── api/         # Axios setup
+└── output/              # Screenshots of the project
 ```
 
 ## Getting Started
 
-### What you'll need
+### What you need
 
-- Node.js (v18+)
-- MongoDB — either running locally or a free Atlas cluster
+- Node.js (v18 or higher)
+- MongoDB: either installed on your computer or a free Atlas cluster
 
-### 1. Clone/unzip the project
+### 1. Get the project
+
+Unzip or clone the project, then open the folder:
 
 ```bash
 cd independence-day-portal
 ```
 
-### 2. Backend
+### 2. Set up the backend
 
 ```bash
 cd backend
@@ -79,46 +96,47 @@ npm install
 cp .env.example .env
 ```
 
-Update `.env` if needed (backend runs on port **5001** by default):
+Open the `.env` file and update it. The backend runs on port **5001** by default.
 
 ```env
 PORT=5001
+NODE_ENV=development
 MONGO_URI=mongodb://127.0.0.1:27017/independence_day_portal
 JWT_SECRET=change_this_to_a_long_random_secret_key
+JWT_EXPIRE=7d
 CLIENT_URL=http://localhost:5173
-ANTHROPIC_API_KEY=          # optional, leave blank if you don't have one
 
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_email_app_password
-EMAIL_FROM=Independence Day Portal <your_email@gmail.com>
+# Optional: for the AI quiz generator
+ANTHROPIC_API_KEY=
+
+# Optional: for password reset emails (Brevo)
+BREVO_API_KEY=
+EMAIL_FROM=your_verified_sender@example.com
+EMAIL_FROM_NAME=Independence Day Portal
 ```
 
-For password reset emails, configure the `EMAIL_*` variables with a valid SMTP account. If the email service is not configured or sending fails, the backend can return the reset link for local testing.
-
-Make sure MongoDB is running (`mongod` if local), then seed an admin account + some sample data:
+Make sure MongoDB is running, then add the admin account and sample data:
 
 ```bash
 npm run seed
 ```
 
-This gives you:
+This creates the default admin login:
 
 ```text
 Email: admin@idportal.com
 Password: admin123
 ```
 
-Now start the server:
+Start the server:
 
 ```bash
 npm run dev
 ```
 
-Backend should be up at `http://localhost:5001`
+The backend will run at `http://localhost:5001`.
 
-### 3. Frontend
+### 3. Set up the frontend
 
 Open a new terminal:
 
@@ -128,224 +146,98 @@ npm install
 npm run dev
 ```
 
-Frontend runs at `http://localhost:5173`. It's already configured to proxy `/api` requests to the backend, so you don't need to change anything there.
+The frontend runs at `http://localhost:5173`. It already sends `/api` requests to the backend, so you do not need to change anything.
 
 ### 4. Open the app
 
-Go to `http://localhost:5173` in your browser. Log in with the admin credentials above from the `/login` page, then hit "Admin" in the header to get to the dashboard.
+Go to `http://localhost:5173` in your browser. Log in from the `/login` page with the admin details above, then click **Admin** in the header to open the dashboard.
 
-## Password Reset
+> ⚠️ Change the default admin password before you use this for a real event.
 
-The login page includes a **Forgot Password?** option for participant accounts.
+## AI Quiz Generator
+
+This is the part I was most excited about. In the admin dashboard, open **AI Quiz Generator**:
+
+1. Enter a topic (for example, "Indian Freedom Fighters").
+2. Choose how many questions you want.
+3. Click **Generate**.
+
+If you added `ANTHROPIC_API_KEY` in the backend `.env`, the app asks Claude to write the questions. If there is no key, it uses a local set of ready-made questions, so the project still works without a paid key.
+
+After the quiz is created, click **Set Active** to show it on the public `/quiz` page.
+
+## Password Reset (OTP)
+
+Participants can reset a forgotten password from the login page.
 
 1. Click **Forgot Password?** on the login page.
-2. Enter the participant account email.
-3. Submit the form.
-4. If email settings are configured correctly, a reset link is sent to the email address.
-5. Open the reset link and create a new password.
-6. The reset link is valid for 30 minutes.
+2. Enter your email.
+3. You get a one-time code (OTP) by email. The code is valid for **10 minutes**.
+4. Enter the code.
+5. Set a new password.
 
-Admin accounts are intentionally excluded from the public password reset flow.
+Good to know:
 
-The backend stores a hashed reset token and an expiration time instead of storing the raw reset token.
+- The OTP is stored in hashed form, not as plain text.
+- The OTP is never sent back to the browser. It only goes to the user's email.
+- The app shows the same message whether or not the email exists, so nobody can find out which emails are registered.
+- Admin accounts cannot use this flow.
+- Emails are sent through the Brevo HTTPS API, because free hosts like Render often block normal SMTP. If `BREVO_API_KEY` and `EMAIL_FROM` are not set, the email will not be sent.
 
-## About the AI Quiz Generator
+To set up Brevo (free): create an account, make an API key under **SMTP & API**, and verify a sender email under **Senders & Domains**. Then add both values to `backend/.env`.
 
-This was the part I was most excited about. In the admin dashboard, under "AI Quiz Generator":
+## Admin Panel: View / Edit / Delete
 
-1. Enter a topic (like "Indian Freedom Fighters")
-2. Pick how many questions you want
-3. Click Generate
+Every admin section works the same way:
 
-If you've added an `ANTHROPIC_API_KEY` in the backend `.env`, it calls Claude to generate real MCQs on the fly. If not, it quietly falls back to a local set of pre-written questions so nothing breaks — I wanted the project to be fully runnable even for someone who doesn't want to set up an API key just to test it.
-
-Once generated, just click "Set Active" to make that quiz live on the public `/quiz` page.
-
-## Admin Panel — View / Edit / Delete
-
-Every section in the admin panel works the same way, which I did on purpose to keep things consistent:
-
-- Click **View** on any record to open its full details in a popup
-- From there you can **Edit** (opens a form, save your changes) or **Delete** (with a confirm prompt)
-- New records are added using the form at the top of each section
-
-So basically full CRUD everywhere, not just create-and-delete.
+- Click **View** on a record to see its full details in a popup.
+- From there, click **Edit** to change it, or **Delete** (with a confirmation).
+- To add a new record, use the form at the top of the section.
 
 ## Certificates
 
-When someone finishes the quiz, they get a PDF certificate instantly with their name, score, and a unique certificate ID (generated server-side with PDFKit — no third-party service). Admin can also re-download anyone's certificate from the Results tab.
+When a participant finishes the quiz, they get a PDF certificate right away. It has their name, score, and a unique certificate ID. It is made on the server with PDFKit, with no third-party service. Admins can download anyone's certificate again from the **Results** tab.
 
-## Notes on the homepage images
+## Gallery Images
 
-The 5 images in the homepage slideshow (flag, Ashoka Chakra, fireworks, tricolor banner, students celebrating) are custom SVGs I added under `frontend/public/images/` — they rotate automatically every second. Feel free to swap them out with real photos once you have some from your actual event.
+Gallery photos are saved directly in MongoDB (as base64), so you do not need a separate file server. Each image can be up to **50 KB**.
 
-## Default Admin Login
+If you have an older database, you can move its gallery data to the new format with:
 
-```text
-Email: admin@idportal.com
-Password: admin123
+```bash
+npm run migrate:gallery
 ```
 
-(created automatically by `npm run seed`)
+## Homepage Slideshow
 
-## Things I'd still like to add
+The 5 slideshow images (flag, Ashoka Chakra, fireworks, tricolor banner, students) are in `frontend/public/images/`. They change every 2 seconds. You can replace them with real photos from your event.
 
-- Deploy it properly (Render/Vercel + Atlas)
-- Email notifications on registration
+## Screenshots
+
+Screenshots of the project are in the `output/` folder.
+
+## Ideas for the Future
+
+- Email notification when someone registers
 - Better mobile view for the admin quiz editor
-- Maybe a leaderboard page for the quiz, publicly visible
+- A public leaderboard for the quiz
 
 ## Troubleshooting
 
-| Issue | Fix |
+| Problem | Fix |
 |---|---|
-| MongoDB connection error | Check `mongod` is running, or that your Atlas URI in `.env` is correct |
-| Port 5001 already used | Change `PORT` in `backend/.env` and update the proxy in `frontend/vite.config.js` |
-| Frontend can't reach API | Start the backend first, then the frontend |
-| AI quiz always uses local fallback | Double check `ANTHROPIC_API_KEY` is set correctly and restart the backend |
-| Password reset email not received | Check `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, and `EMAIL_PASS` in `backend/.env` and restart the backend |
-| Password reset link expired | Request a new reset link; reset links are valid for 30 minutes |
+| MongoDB connection error | Check that `mongod` is running, or that your Atlas link in `.env` is correct |
+| Port 5001 is already used | Change `PORT` in `backend/.env` and update the proxy in `frontend/vite.config.js` |
+| Frontend cannot reach the API | Start the backend first, then the frontend |
+| AI quiz always uses local questions | Check that `ANTHROPIC_API_KEY` is correct, then restart the backend |
+| OTP email not received | Check `BREVO_API_KEY` and `EMAIL_FROM` in `backend/.env`, make sure the sender is verified in Brevo, then restart the backend |
+| "That code is incorrect or has expired" | Ask for a new code. Each code works for 10 minutes only |
+| Gallery image upload fails | Use a JPG, PNG, GIF, or WEBP image that is 50 KB or smaller |
 
 ## Author
 
-Built as a personal/portfolio project. If you use this or build on top of it, a star or a shoutout is appreciated 🙂
-
-Jai Hind 🇮🇳
-│   ├── routes/          # API endpoints
-│   ├── middleware/       # JWT auth, error handling
-│   ├── utils/            # AI quiz generator, certificate generator, admin seeder
-│   └── server.js
-└── frontend/
-    ├── public/images/     # homepage slideshow images
-    └── src/
-        ├── components/    # Header, Footer, ImageCarousel, Modal, etc.
-        ├── pages/          # Home, Schedule, Quiz, Register, Gallery, Admin...
-        ├── context/        # Auth context
-        └── api/            # axios instance
-```
-
-## Getting Started
-
-### What you'll need
-
-- Node.js (v18+)
-- MongoDB — either running locally or a free Atlas cluster
-
-### 1. Clone/unzip the project
-
-```bash
-cd independence-day-portal
-```
-
-### 2. Backend
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-```
-
-Update `.env` if needed (backend runs on port **5001** by default, since 5000 was taken):
-
-```
-PORT=5001
-MONGO_URI=mongodb://127.0.0.1:27017/independence_day_portal
-JWT_SECRET=change_this_to_a_long_random_secret_key
-CLIENT_URL=http://localhost:5173
-ANTHROPIC_API_KEY=          # optional, leave blank if you don't have one
-```
-
-Make sure MongoDB is running (`mongod` if local), then seed an admin account + some sample data:
-
-```bash
-npm run seed
-```
-
-This gives you:
-```
-Email: admin@idportal.com
-Password: admin123
-```
-
-Now start the server:
-
-```bash
-npm run dev
-```
-
-Backend should be up at `http://localhost:5001`
-
-### 3. Frontend
-
-Open a new terminal:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend runs at `http://localhost:5173`. It's already configured to proxy `/api` requests to the backend, so you don't need to change anything there.
-
-### 4. Open the app
-
-Go to `http://localhost:5173` in your browser. Log in with the admin credentials above from the `/login` page, then hit "Admin" in the header to get to the dashboard.
-
-## About the AI Quiz Generator
-
-This was the part I was most excited about. In the admin dashboard, under "AI Quiz Generator":
-
-1. Enter a topic (like "Indian Freedom Fighters")
-2. Pick how many questions you want
-3. Click Generate
-
-If you've added an `ANTHROPIC_API_KEY` in the backend `.env`, it calls Claude to generate real MCQs on the fly. If not, it quietly falls back to a local set of pre-written questions so nothing breaks — I wanted the project to be fully runnable even for someone who doesn't want to set up an API key just to test it.
-
-Once generated, just click "Set Active" to make that quiz live on the public `/quiz` page.
-
-## Admin Panel — View / Edit / Delete
-
-Every section in the admin panel works the same way, which I did on purpose to keep things consistent:
-
-- Click **View** on any record to open its full details in a popup
-- From there you can **Edit** (opens a form, save your changes) or **Delete** (with a confirm prompt)
-- New records are added using the form at the top of each section
-
-So basically full CRUD everywhere, not just create-and-delete.
-
-## Certificates
-
-When someone finishes the quiz, they get a PDF certificate instantly with their name, score, and a unique certificate ID (generated server-side with PDFKit — no third-party service). Admin can also re-download anyone's certificate from the Results tab.
-
-## Notes on the homepage images
-
-The 5 images in the homepage slideshow (flag, Ashoka Chakra, fireworks, tricolor banner, students celebrating) are custom SVGs I added under `frontend/public/images/` — they rotate automatically every second. Feel free to swap them out with real photos once you have some from your actual event.
-
-## Default Admin Login
-
-```
-Email: admin@idportal.com
-Password: admin123
-```
-
-(created automatically by `npm run seed`)
-
-## Things I'd still like to add
-
-- Deploy it properly (Render/Vercel + Atlas)
-- Email notifications on registration
-- Better mobile view for the admin quiz editor
-- Maybe a leaderboard page for the quiz, publicly visible
-
-## Troubleshooting
-
-| Issue | Fix |
-|---|---|
-| MongoDB connection error | Check `mongod` is running, or that your Atlas URI in `.env` is correct |
-| Port 5001 already used | Change `PORT` in `backend/.env` and update the proxy in `frontend/vite.config.js` |
-| Frontend can't reach API | Start the backend first, then the frontend |
-| AI quiz always uses local fallback | Double check `ANTHROPIC_API_KEY` is set correctly and restart the backend |
-
-## Author
 Ayush Raj
+
+Built as a personal portfolio project. If you use it or build on top of it, a star or a shoutout is appreciated 🙂
+
 Jai Hind 🇮🇳
